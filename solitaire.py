@@ -353,7 +353,7 @@ class GameState(object):
         elif isinstance(move, MoveWasteToFoundation):
             return self.move_waste_to_foundation()
         elif isinstance(move, MoveWasteToTableau):
-            return self.move_waste_to_tableau(target_col)
+            return self.move_waste_to_tableau(move.target_col)
         elif isinstance(move, MoveFoundationToTableau):
             return self.move_foundation_to_tableau(
                 move.source_col, move.target_col)

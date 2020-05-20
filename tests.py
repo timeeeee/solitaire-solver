@@ -334,7 +334,96 @@ def test_turn_stock():
          Card(7, 1)])
     assert_list_equal(state.waste, [Card(10, 1), Card(9, 1), Card(8, 1)])
 
-# make sure this works when the stock is empty and the waste has 1, 2, or more cards
+
+def test_turn_stock_empty_stock():
+    s = example_state_1
+
+    # start with 24 cards in stock, waste is empty
+    assert_equal(len(s.stock), 24)
+    assert_equal(len(s.waste), 0)
+
+    for _ in range(8):
+        s = s.apply_move(TurnStock())
+
+    # now the stock is empty and there are 24 cards in the waste
+    assert_equal(len(s.stock), 0)
+    assert_equal(len(s.waste), 24)
+
+    # next time the waste gets rotated back into the stock
+    s = s.apply_move(TurnStock())
+    assert_equal(len(s.stock), 21)
+    assert_equal(len(s.waste), 3)
+
+
+def test_turn_stock_two_cards_in_stock():
+    s = example_state_1
+
+    for _ in range(5):
+        s = s.apply_move(TurnStock())
+
+    # move a card onto the tableau
+    s = s.apply_move(MoveWasteToTableau(1))
+
+    for _ in range(3):
+        s = s.apply_move(TurnStock())
+
+    # stock is empty, 23 cards in waste
+    assert_equal(len(s.stock), 0)
+    assert_equal(len(s.waste), 23)
+
+    # next time the waste gets rotated back into the stock
+    s = s.apply_move(TurnStock())
+    assert_equal(len(s.stock), 20)
+    assert_equal(len(s.waste), 3)
+
+    for _ in range(6):
+        s = s.apply_move(TurnStock())
+
+    # now there are two cards left in stock
+    assert_equal(len(s.stock), 2)
+    assert_equal(len(s.waste), 21)
+
+    # this time, TurnStock only flips those two cards
+    s = s.apply_move(TurnStock())
+
+    assert_equal(len(s.stock), 0)
+    assert_equal(len(s.waste), 23)
+
+
+def test_turn_stock_one_card_in_stock():
+    s = example_state_1
+
+    for _ in range(5):
+        s = s.apply_move(TurnStock())
+
+    # move a card onto the tableau
+    s = s.apply_move(MoveWasteToTableau(1))
+    s = s.apply_move(MoveWasteToTableau(6))
+
+    for _ in range(3):
+        s = s.apply_move(TurnStock())
+
+    # stock is empty, 22 cards in waste
+    assert_equal(len(s.stock), 0)
+    assert_equal(len(s.waste), 22)
+
+    # next time the waste gets rotated back into the stock
+    s = s.apply_move(TurnStock())
+    assert_equal(len(s.stock), 19)
+    assert_equal(len(s.waste), 3)
+
+    for _ in range(6):
+        s = s.apply_move(TurnStock())
+
+    # now there is one card left in stock
+    assert_equal(len(s.stock), 1)
+    assert_equal(len(s.waste), 21)
+
+    # this time, TurnStock only flips that card
+    s = s.apply_move(TurnStock())
+
+    assert_equal(len(s.stock), 0)
+    assert_equal(len(s.waste), 22)
 
 
 def test_game_state_move_waste_to_tableau():
@@ -376,7 +465,47 @@ def test_move_waste_to_tableau_king_to_empty_col():
     raise NotImplementedError
 
 
-# move foundation to tableau
+def test_game_state_move_foundation_to_tableau():
+    raise NotImplementedError
+
+def test_move_foundation_to_tableau():
+    raise NotImplementedError
+
+def test_game_state_move_foundation_to_tableau_bad_suit():
+    raise NotImplementedError
+
+def test_move_foundation_to_tableau_bad_suit():
+    raise NotImplementedError
+
+def test_game_state_move_foundation_to_tableau_bad_rank():
+    raise NotImplementedError
+
+def test_move_foundation_to_tableau_bad_rank():
+    raise NotImplementedError
+
+def test_game_state_move_foundation_to_tableau_empty_column():
+    # can't move a card to an empty column in the tableau...
+
+    # ... unless it's a king!
+    raise NotImplementedError
+
+
+def test_move_foundation_to_tableau_empty_column():
+    # can't move a card to an empty column in the tableau...
+
+    # ... unless it's a king!
+    raise NotImplementedError
+
+
+def test_game_state_move_foundation_to_tableau_empty_foundation():
+    with assert_raises(InvalidMove):
+        example_state_1.move_foundation_to_tableau(0, 0)
+
+
+def test_move_foundation_to_tableau_empty_foundation():
+    with assert_raises(InvalidMove):
+        move = MoveFoundationToTableau(0, 0)
+        example_state_1.apply_move(move)
 
 # move waste to foundation
 
