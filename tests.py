@@ -582,3 +582,37 @@ def test_move_foundation_to_tableau_empty_foundation():
 
 # valid moves
 
+def test_turn_stock_equals_turn_stock():
+    move1 = TurnStock()
+    move2 = TurnStock()
+    assert_equal(move1, move2)
+
+
+def test_move_tableau_to_tableau_equal_to():
+    for source_col in range(7):
+        for source_row in range(12):
+            for target_col in range(7):
+                move1 = MoveTableauToTableau(
+                    source_col, source_row, target_col)
+                move2 = MoveTableauToTableau(
+                    source_col, source_row, target_col)
+                assert_equal(move1, move2)
+
+
+def test_move_tableau_to_tableau_source_col_not_equal():
+    assert_not_equal(
+        MoveTableauToTableau(0, 0, 0), MoveTableauToTableau(1, 0, 0))
+
+
+def test_move_tableau_to_tableau_source_row_not_equal():
+    assert_not_equal(
+        MoveTableauToTableau(0, 0, 0), MoveTableauToTableau(0, 1, 0))
+
+
+def test_move_tableau_to_tableau_target_col_not_equal():
+    assert_not_equal(
+        MoveTableauToTableau(0, 0, 0), MoveTableauToTableau(0, 0, 1))
+
+
+
+

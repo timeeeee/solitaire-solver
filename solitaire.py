@@ -379,7 +379,8 @@ class Move(object):
     Moves won't do shit, except remember source and target columns, if
     needed for that type of move.
     """
-    pass
+    def __eq__(self, other):
+        raise NotImplementedError
 
 
 class TurnStock(Move):
@@ -387,7 +388,8 @@ class TurnStock(Move):
     This class represents moving (up to) 3 cards from the stock to waste,
     recycling all cards from the waste to the stock first if necessary.
     """
-    pass
+    def __eq__(self, other):
+        return isinstance(other, TurnStock)
 
 
 class MoveTableauToTableau(Move):
@@ -398,6 +400,13 @@ class MoveTableauToTableau(Move):
         self.source_col = source_col
         self.source_row = source_row
         self.target_col = target_col
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, MoveTableauToTableau)
+            and self.source_col == other.source_col
+            and self.source_row == other.source_row
+            and self.target_col == other.target_col)
 
 
 class MoveTableauToFoundation(Move):
