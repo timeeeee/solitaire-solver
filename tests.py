@@ -14,6 +14,17 @@ from solitaire import *
 example_state_1 = GameState(DECK)
 
 
+# state with column 1 of the tableau entirely empty
+_s = GameState(DECK)
+_s = _s.apply_move(MoveTableauToTableau(1, 0, 4))
+_s = _s.apply_move(MoveTableauToTableau(4, 0, 0))
+empty_col_1_state = _s.apply_move(MoveTableauToTableau(1, 0, 4))
+
+
+def test_empty_col_example_state():
+    assert_list_equal(empty_col_1_state.tableau[1], [[], []])
+
+
 def test_does_fit_under():
     for black_suit in [0, 2]:
         for red_suit in [1, 3]:
@@ -427,42 +438,102 @@ def test_turn_stock_one_card_in_stock():
 
 
 def test_game_state_move_waste_to_tableau():
-    raise NotImplementedError
+    s = example_state_1
+
+    for _ in range(5):
+        s = s.apply_move(TurnStock())
+
+    # move 10 of Spades to Jack of Hearts on tableau
+    s = s.move_waste_to_tableau(1)
+
+    assert_equal(len(s.waste), 14)
+    assert_list_equal(s.tableau[1][1], [Card(10, 3), Card(9, 0)])
 
 
 def test_move_waste_to_tableau():
-    raise NotImplementedError
+    s = example_state_1
+
+    for _ in range(5):
+        s = s.apply_move(TurnStock())
+
+    # move 10 of Spades to Jack of Hearts on tableau
+    s = s.apply_move(MoveWasteToTableau(1))
+
+    assert_equal(len(s.waste), 14)
+    assert_list_equal(s.tableau[1][1], [Card(10, 3), Card(9, 0)])
 
 def test_game_state_move_waste_to_tableau_nothing_there_raises_error():
-    raise NotImplementedError
+    # at first the waste is empty
+    assert_list_equal(example_state_1.waste, [])
+
+    # so we can't take anything from it
+    with assert_raises(InvalidMove):
+        example_state_1.move_waste_to_tableau(0)
 
 
 def test_move_waste_to_tableau_nothing_there_raises_error():
-    raise NotImplementedError
+    # at first the waste is empty
+    assert_list_equal(example_state_1.waste, [])
+
+    # so we can't take anything from it
+    with assert_raises(InvalidMove):
+        example_state_1.apply_move(MoveWasteToTableau(0))
 
 
 def test_game_state_move_waste_to_tableau_bad_card_raises_error():
-    raise NotImplementedError
+    # try moving Jack of Diamonds onto each column...
+    for col in range(7):
+        # ... except 4 because it would fit under the Queen of Clubs
+        if col == 4:
+            continue
+        
+        with assert_raises(InvalidMove):
+            example_state_1.move_waste_to_tableau(col)
 
 
 def test_move_waste_to_tableau_bad_card_raises_error():
-    raise NotImplementedError
+    # try moving Jack of Diamonds onto each column...
+    for col in range(7):
+        # ... except 4 because it would fit under the Queen of Clubs
+        if col == 4:
+            continue
+        
+        with assert_raises(InvalidMove):
+            example_state_1.apply_move(MoveWasteToTableau(col))
 
 
 def test_game_state_move_waste_to_tableau_empty_column_raises_error():
-    raise NotImplementedError
+    # try to move card from waste to empty column
+    with assert_raises(InvalidMove):
+        empty_col_1_state.move_waste_to_tableau(1)
 
 
 def test_move_waste_to_tableau_empty_column_raises_error():
-    raise NotImplementedError
+    # try to move card from waste to empty column
+    with assert_raises(InvalidMove):
+        empty_col_1_state.apply_move(MoveWasteToTableau(1))
 
 
 def test_game_state_move_waste_to_tableau_king_to_empty_col():
-    raise NotImplementedError
+    state = empty_col_1_state
+    for _ in range(4):
+        state = state.apply_move(TurnStock())
+
+    # Move King of Clubs into empty column 1
+    state = state.move_waste_to_tableau(1)
+    assert_equal(len(state.waste), 11)
+    assert_list_equal(state.tableau[1], [[], [Card(12, 0)]])
 
 
 def test_move_waste_to_tableau_king_to_empty_col():
-    raise NotImplementedError
+    state = empty_col_1_state
+    for _ in range(4):
+        state = state.apply_move(TurnStock())
+
+    # Move King of Clubs into empty column 1
+    state = state.apply_move(MoveWasteToTableau(1))
+    assert_equal(len(state.waste), 11)
+    assert_list_equal(state.tableau[1], [[], [Card(12, 0)]])
 
 
 def test_game_state_move_foundation_to_tableau():
