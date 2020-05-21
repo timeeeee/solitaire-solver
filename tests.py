@@ -614,5 +614,25 @@ def test_move_tableau_to_tableau_target_col_not_equal():
         MoveTableauToTableau(0, 0, 0), MoveTableauToTableau(0, 0, 1))
 
 
+def test_move_tableau_to_foundation_equal():
+    for col in range(7):
+        move1 = MoveTableauToFoundation(col)
+        move2 = MoveTableauToFoundation(col)
+        assert_equal(move1, move2)
+
+
+def test_move_tableau_to_foundation_source_col_not_equal():
+    for col1 in range(7):
+        move1 = MoveTableauToFoundation(col1)
+        for col2 in range(7):
+            move2 = MoveTableauToFoundation(col2)
+            if col1 != col2:
+                assert_not_equal(move1, move2)
+
+
+
+                
+                
+            
 
 

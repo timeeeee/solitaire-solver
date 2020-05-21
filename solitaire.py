@@ -416,6 +416,11 @@ class MoveTableauToFoundation(Move):
     def __init__(self, source_col):
         self.source_col = source_col
 
+    def __eq__(self, other):
+        return (
+            isinstance(other, MoveTableauToFoundation)
+            and self.source_col == other.source_col)
+
 
 class MoveWasteToTableau(Move):
     """
