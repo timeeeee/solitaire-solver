@@ -630,9 +630,58 @@ def test_move_tableau_to_foundation_source_col_not_equal():
                 assert_not_equal(move1, move2)
 
 
+def test_move_waste_to_tableau_equal():
+    for col in range(7):
+        move1 = MoveWasteToTableau(col)
+        move2 = MoveWasteToTableau(col)
+        assert_equal(move1, move2)
+
+
+def test_move_waste_to_tableau_target_col_not_equal():
+    for col1 in range(7):
+        move1 = MoveWasteToTableau(col1)
+        for col2 in range(7):
+            if col1 != col2:
+                move2 = MoveWasteToTableau(col2)
+                assert_not_equal(move1, move2)
+
+
+def test_move_waste_to_foundation_equal():
+    move1 = MoveWasteToFoundation()
+    move2 = MoveWasteToFoundation()
+    assert_equal(move1, move2)
+
+
+def test_move_waste_to_foundation_base_class_not_equal():
+    assert_not_equal(MoveWasteToFoundation(), Move())
 
                 
-                
-            
+def test_move_foundation_to_tableau_equal():
+    for source_col in range(4):
+        for target_col in range(7):
+            move1 = MoveFoundationToTableau(source_col, target_col)
+            move2 = MoveFoundationToTableau(source_col, target_col)
+            assert_equal(move1, move2)
 
 
+def test_move_foundation_to_tableau_source_col_not_equal():
+    for source_col1 in range(4):
+        for source_col2 in range(4):
+            if source_col1 == source_col2:
+                continue
+
+            for target_col in range(7):
+                move1 = MoveFoundationToTableau(source_col1, target_col)
+                move2 = MoveFoundationToTableau(source_col2, target_col)
+                assert_not_equal(move1, move2)
+
+
+def test_move_foundation_to_tableau_target_col_not_equal():
+    for target_col1 in range(7):
+        for target_col2 in range(7):
+            if target_col1 == target_col2:
+                continue
+
+            for source_col in range(4):
+                move1 = MoveFoundationToTableau(source_col, target_col1)
+                move2 = MoveFoundationToTableau(source_col, target_col2)

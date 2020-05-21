@@ -429,6 +429,11 @@ class MoveWasteToTableau(Move):
     def __init__(self, target_col):
         self.target_col = target_col
 
+    def __eq__(self, other):
+        return (
+            isinstance(other, MoveWasteToTableau)
+            and self.target_col == other.target_col)
+
 
 class MoveWasteToFoundation(Move):
     """
@@ -441,6 +446,9 @@ class MoveWasteToFoundation(Move):
     def __init__(self):
         pass
 
+    def __eq__(self, other):
+        return isinstance(other, MoveWasteToFoundation)
+
 
 class MoveFoundationToTableau(Move):
     """
@@ -449,6 +457,12 @@ class MoveFoundationToTableau(Move):
     def __init__(self, source_col, target_col):
         self.source_col = source_col
         self.target_col = target_col
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, MoveFoundationToTableau)
+            and self.source_col == other.source_col
+            and self.target_col == other.target_col)
 
 
 def deal_random_game():
