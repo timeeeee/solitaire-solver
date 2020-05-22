@@ -141,8 +141,9 @@ class GameState(object):
         - MoveWasteToFoundation()
         - MoveFoundationToTableau(source_col, target_col)
         """
-        # raise RuntimeError("did I cover all the types of moves?")
         moves = []
+
+        print(self)
 
         # move tableau to foundation?
         for col in range(7):
@@ -161,29 +162,47 @@ class GameState(object):
 
         # move tableau to tableau?
         for col in range(7):
-            for row in range(len(self.tableau[col][1]) - 1):
-                for other_col in range(7):
-                    if other_col == col:
+            for row in range(len(self.tableau[col][1])):
+                for target_col in range(7):
+                    if target_col == col:
                         continue
-                    card = self.tableau[col][1][row]
-                    other_card = self.tableau[other_col][1][-1]
-                    if card.fits_under(other_card):
-                        moves.append(MoveTableauToTableau(col, row, other_col))
+
+                    top_card = self.tableau[col][1][row]
+
+                    # is the target column empty?
+                    if len(self.tableau[target_col][1]) == 0:
+                        # a king could go here
+                        if top_card.rank == 12:
+                            moves.append(MoveTableauToTableau(col, row, target_col))
+                    else:
+                        other_card = self.tableau[target_col][1][-1]
+                        if top_card.fits_under(other_card):
+                            moves.append(MoveTableauToTableau(col, row, target_col))
 
         # move waste to tableau?
         if len(self.waste) > 0:
             card = self.waste[-1]
             for target_col in range(7):
-                if card.fits_under(self.tableau[target_col][1][-1]):
+                # is the target column empty?
+                if len(self.tableau[target_col][1]) == 0:
+                    # only a king can go here
+                    if card.rank == 12:
+                        moves.append(MoveWasteToTableau(target_col))
+                elif card.fits_under(self.tableau[target_col][1][-1]):
                     moves.append(MoveWasteToTableau(target_col))
 
         # move foundation to tableau?
         for suit in range(4):
+            # can't do this if there are no cards
             if self.foundation[suit] == 0:
                 continue
+            
             for target_col in range(7):
                 card = Card(self.foundation[suit] - 1, suit)
-                if card.fits_under(self.tableau[target_col][1][-1]):
+                if len(self.tableau[target_col][1]) == 0:
+                    if card.rank == 12:
+                        moves.append(MoveFoundationToTableau(suit, target_col))
+                elif card.fits_under(self.tableau[target_col][1][-1]):
                     moves.append(MoveFoundationToTableau(suit, target_col))
 
         # turn stock
@@ -382,6 +401,9 @@ class Move(object):
     def __eq__(self, other):
         raise NotImplementedError
 
+    def __hash__(self):
+        raise NotImplementedError
+
 
 class TurnStock(Move):
     """
@@ -390,6 +412,9 @@ class TurnStock(Move):
     """
     def __eq__(self, other):
         return isinstance(other, TurnStock)
+
+    def __hash__(self):
+        return 0
 
 
 class MoveTableauToTableau(Move):
@@ -401,12 +426,13 @@ class MoveTableauToTableau(Move):
         self.source_row = source_row
         self.target_col = target_col
 
+    def __hash__(self):
+        return hash((self.source_col, self.source_row, self.target_col))
+
     def __eq__(self, other):
         return (
             isinstance(other, MoveTableauToTableau)
-            and self.source_col == other.source_col
-            and self.source_row == other.source_row
-            and self.target_col == other.target_col)
+            and hash(self) == hash(other))
 
 
 class MoveTableauToFoundation(Move):
@@ -416,10 +442,13 @@ class MoveTableauToFoundation(Move):
     def __init__(self, source_col):
         self.source_col = source_col
 
+    def __hash__(self):
+        return self.source_col
+
     def __eq__(self, other):
         return (
             isinstance(other, MoveTableauToFoundation)
-            and self.source_col == other.source_col)
+            and hash(self) == hash(other))
 
 
 class MoveWasteToTableau(Move):
@@ -429,10 +458,13 @@ class MoveWasteToTableau(Move):
     def __init__(self, target_col):
         self.target_col = target_col
 
+    def __hash__(self):
+        return self.target_col
+
     def __eq__(self, other):
         return (
             isinstance(other, MoveWasteToTableau)
-            and self.target_col == other.target_col)
+            and hash(self) == hash(other))
 
 
 class MoveWasteToFoundation(Move):
@@ -446,6 +478,9 @@ class MoveWasteToFoundation(Move):
     def __init__(self):
         pass
 
+    def __hash__(self):
+        return 0
+
     def __eq__(self, other):
         return isinstance(other, MoveWasteToFoundation)
 
@@ -458,11 +493,13 @@ class MoveFoundationToTableau(Move):
         self.source_col = source_col
         self.target_col = target_col
 
+    def __hash__(self):
+        return hash((self.source_col, self.target_col))
+
     def __eq__(self, other):
         return (
             isinstance(other, MoveFoundationToTableau)
-            and self.source_col == other.source_col
-            and self.target_col == other.target_col)
+            and hash(self) == hash(other))
 
 
 def deal_random_game():
