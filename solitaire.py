@@ -53,7 +53,7 @@ class Card(object):
         return self.suit == other.suit and self.rank == other.rank
 
     def __hash__(self):
-        return (self.suit, self.rank)
+        return hash((self.suit, self.rank))
 
 
 DECK = [Card(rank, suit) for suit in range(4) for rank in range(13)]
@@ -385,7 +385,13 @@ class GameState(object):
         return (self.foundation == [13, 13, 13, 13])
 
     def __hash__(self):
-        raise NotImplementedError
+        # CHEAP
+        tableau_tuple = tuple(
+            tuple(tuple(stack) for stack in col) for col in self.tableau)
+
+        return hash((
+            tableau_tuple, tuple(self.stock), tuple(self.waste),
+            tuple(self.foundation)))
 
     def __eq__(self, other_game_state):
         return hash(self) == hash(other_game_state)
