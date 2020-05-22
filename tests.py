@@ -774,3 +774,11 @@ def test_valid_moves_foundation_to_tableau():
         MoveTableauToTableau(4, 0, 0), MoveWasteToFoundation(),
         MoveFoundationToTableau(0, 3)
     ])
+
+
+def test_card_hash():
+    raise NotImplementedError
+
+
+def test_game_state_hash():
+    raise NotImplementedError
