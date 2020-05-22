@@ -126,7 +126,7 @@ def test_move_tableau_to_tableau():
     assert_list_equal(state2.tableau[1][1], [Card(11, 3)])
 
     # Now the Jack of Hearts is in column 4
-    assert_list_equal(state2.tableau[4][1], [Card(11, 2), Card(10, 3)])   
+    assert_list_equal(state2.tableau[4][1], [Card(11, 2), Card(10, 3)])
 
 
 def test_game_state_move_two_tableau_to_tableau():
@@ -140,7 +140,7 @@ def test_game_state_move_two_tableau_to_tableau():
     assert_list_equal(
         state3.tableau[4][0],
         [Card(2, 3), Card(1, 3), Card(0, 3)])
-    
+
     assert_list_equal(state3.tableau[4][1], [Card(12, 2)])
 
     # Now there is a stack 3 deep visible in column 0
@@ -162,7 +162,7 @@ def test_move_two_tableau_to_tableau():
     assert_list_equal(
         state3.tableau[4][0],
         [Card(2, 3), Card(1, 3), Card(0, 3)])
-    
+
     assert_list_equal(state3.tableau[4][1], [Card(12, 2)])
 
     # Now there is a stack 3 deep visible in column 0
@@ -462,6 +462,7 @@ def test_move_waste_to_tableau():
     assert_equal(len(s.waste), 14)
     assert_list_equal(s.tableau[1][1], [Card(10, 3), Card(9, 0)])
 
+
 def test_game_state_move_waste_to_tableau_nothing_there_raises_error():
     # at first the waste is empty
     assert_list_equal(example_state_1.waste, [])
@@ -486,7 +487,7 @@ def test_game_state_move_waste_to_tableau_bad_card_raises_error():
         # ... except 4 because it would fit under the Queen of Clubs
         if col == 4:
             continue
-        
+
         with assert_raises(InvalidMove):
             example_state_1.move_waste_to_tableau(col)
 
@@ -497,7 +498,7 @@ def test_move_waste_to_tableau_bad_card_raises_error():
         # ... except 4 because it would fit under the Queen of Clubs
         if col == 4:
             continue
-        
+
         with assert_raises(InvalidMove):
             example_state_1.apply_move(MoveWasteToTableau(col))
 
@@ -539,20 +540,26 @@ def test_move_waste_to_tableau_king_to_empty_col():
 def test_game_state_move_foundation_to_tableau():
     raise NotImplementedError
 
+
 def test_move_foundation_to_tableau():
     raise NotImplementedError
+
 
 def test_game_state_move_foundation_to_tableau_bad_suit():
     raise NotImplementedError
 
+
 def test_move_foundation_to_tableau_bad_suit():
     raise NotImplementedError
+
 
 def test_game_state_move_foundation_to_tableau_bad_rank():
     raise NotImplementedError
 
+
 def test_move_foundation_to_tableau_bad_rank():
     raise NotImplementedError
+
 
 def test_game_state_move_foundation_to_tableau_empty_column():
     # can't move a card to an empty column in the tableau...
@@ -578,9 +585,22 @@ def test_move_foundation_to_tableau_empty_foundation():
         move = MoveFoundationToTableau(0, 0)
         example_state_1.apply_move(move)
 
-# move waste to foundation
 
-# valid moves
+def test_game_state_move_waste_to_foundation():
+    raise NotImplementedError
+
+
+def test_move_waste_to_foundation():
+    raise NotImplementedError
+
+
+def test_game_state_move_waste_to_foundation_bad_card():
+    raise NotImplementedError
+
+
+def test_move_waste_to_foundation_bad_card():
+    raise NotImplementedError
+
 
 def test_turn_stock_equals_turn_stock():
     move1 = TurnStock()
@@ -655,7 +675,7 @@ def test_move_waste_to_foundation_equal():
 def test_move_waste_to_foundation_base_class_not_equal():
     assert_not_equal(MoveWasteToFoundation(), Move())
 
-                
+
 def test_move_foundation_to_tableau_equal():
     for source_col in range(4):
         for target_col in range(7):
@@ -685,3 +705,72 @@ def test_move_foundation_to_tableau_target_col_not_equal():
             for source_col in range(4):
                 move1 = MoveFoundationToTableau(source_col, target_col1)
                 move2 = MoveFoundationToTableau(source_col, target_col2)
+
+
+def test_valid_moves_1():
+    """
+    Turn stock, move waste to tableau, move tableau to tableau
+    """
+    state = example_state_1
+    for _ in range(5):
+        state = state.turn_stock()
+
+    valid_moves = set(state.valid_moves())
+    expected = set([
+        TurnStock(), MoveWasteToTableau(1), MoveTableauToTableau(1, 0, 4),
+        MoveTableauToTableau(4, 0, 0)])
+    assert_set_equal(valid_moves, expected)
+
+
+def test_valid_moves_2():
+    """
+    turn stock, move waste king to tableau, move tableau king to tableau
+    """
+    state = empty_col_1_state
+    for _ in range(4):
+        state = state.turn_stock()
+
+    valid_moves = set(state.valid_moves())
+    expected = set([
+        MoveWasteToTableau(1), TurnStock(), MoveTableauToTableau(0, 0, 1),
+        MoveTableauToTableau(4, 0, 1)])
+    assert_set_equal(valid_moves, expected)
+
+
+def test_valid_moves_moves_to_foundation():
+    state = example_state_1
+
+    # get an ace at the top of the waste
+    for _ in range(8):
+        state = state.turn_stock()
+
+    # make an ace accessible on col 6 of tableau
+    state.tableau[6][0][4] = Card(11, 1)
+    state.tableau[6][1][0] = Card(0, 2)
+
+    valid_moves = set(state.valid_moves())
+    expected = set([
+        TurnStock(), MoveTableauToTableau(1, 0, 4),
+        MoveTableauToTableau(4, 0, 0), MoveWasteToFoundation(),
+        MoveTableauToFoundation(6)])
+    assert_set_equal(valid_moves, expected)
+
+
+def test_valid_moves_foundation_to_tableau():
+    state = example_state_1
+    for _ in range(8):
+        state = state.turn_stock()
+
+    # put ace of spades onto the foundation
+    state.apply_move(MoveWasteToFoundation())
+
+    # make 2 of hearts accessible in tableau col 3
+    state.tableau[3][1][0] = Card(2, 3)
+    state.tableau[4][0][0] = Card(3, 3)
+
+    valid_moves = set(state.valid_moves())
+    expected = set([
+        TurnStock(), MoveTableauToTableau(1, 0, 4),
+        MoveTableauToTableau(4, 0, 0), MoveWasteToFoundation(),
+        MoveFoundationToTableau(0, 3)
+    ])
