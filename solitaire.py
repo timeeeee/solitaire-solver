@@ -416,6 +416,9 @@ class TurnStock(Move):
     def __hash__(self):
         return 0
 
+    def __repr__(self):
+        return "TurnStock()"
+
 
 class MoveTableauToTableau(Move):
     """
@@ -434,6 +437,10 @@ class MoveTableauToTableau(Move):
             isinstance(other, MoveTableauToTableau)
             and hash(self) == hash(other))
 
+    def __repr__(self):
+        return "MoveTableauToTableau({}, {}, {})".format(
+            self.source_col, self.source_row, self.target_col)
+
 
 class MoveTableauToFoundation(Move):
     """
@@ -450,6 +457,9 @@ class MoveTableauToFoundation(Move):
             isinstance(other, MoveTableauToFoundation)
             and hash(self) == hash(other))
 
+    def __repr__(self):
+        return "MoveTableauToFoundation({})".format(self.source_col)
+
 
 class MoveWasteToTableau(Move):
     """
@@ -465,6 +475,9 @@ class MoveWasteToTableau(Move):
         return (
             isinstance(other, MoveWasteToTableau)
             and hash(self) == hash(other))
+
+    def __repr__(self):
+        return "MoveWasteToTableau({})".format(self.target_col)
 
 
 class MoveWasteToFoundation(Move):
@@ -484,6 +497,9 @@ class MoveWasteToFoundation(Move):
     def __eq__(self, other):
         return isinstance(other, MoveWasteToFoundation)
 
+    def __repr__(self):
+        return "MoveWasteToFoundation()"
+
 
 class MoveFoundationToTableau(Move):
     """
@@ -500,6 +516,10 @@ class MoveFoundationToTableau(Move):
         return (
             isinstance(other, MoveFoundationToTableau)
             and hash(self) == hash(other))
+
+    def __repr__(self):
+        return "MoveFoundationToTableau({}, {})".format(
+            self.source_col, self.target_col)
 
 
 def deal_random_game():
