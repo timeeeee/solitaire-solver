@@ -782,3 +782,24 @@ def test_card_hash():
 
 def test_game_state_hash():
     raise NotImplementedError
+
+
+def test_game_state_hash_tableau_column_order():
+    raise NotImplementedError
+
+
+def test_card_less_than_lt():
+    for smaller_index, smaller in enumerate(DECK):
+        for larger in DECK[smaller_index+1:]:
+            assert(smaller < larger)
+
+
+def test_card_equal_lt():
+    for card in DECK:
+        assert_false(card < card)
+
+
+def test_card_greater_than_lt():
+    for smaller_index, smaller in enumerate(DECK):
+        for larger in DECK[smaller_index+1:]:
+            assert_false(larger < smaller)
