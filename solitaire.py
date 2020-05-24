@@ -14,6 +14,7 @@ from the top of a real-world stack" and "append" means "put a card physically
 on top of a stack". 
 """
 
+import sys
 from copy import deepcopy
 from random import shuffle
 
@@ -28,6 +29,9 @@ RANKS = [
 # Will this be helpful?
 CACHE = dict()
 CACHE_HITS = 0
+
+
+MAXDEPTH = 0
 
 
 class Card(object):
@@ -54,6 +58,10 @@ class Card(object):
 
     def __hash__(self):
         return hash((self.suit, self.rank))
+
+    def __lt__(self, other):
+        # sort by suit then by rank
+        return (self.suit, self.rank) < (other.suit, other.rank)
 
 
 DECK = [Card(rank, suit) for suit in range(4) for rank in range(13)]
@@ -130,20 +138,21 @@ class GameState(object):
         current game state!
 
         possible moves:
+        - MoveTableauToFoundation(source_col)
+        - MoveWasteToFoundation()
+        - MoveWasteToTableau(target_col)
+        - MoveTableauToTableau(source_col, source_row, target_col)
         - TurnStock(): If the stock pile is empty, move the waste pile onto the
           stock pile. Flip up to three cards from the stock pile onto the waste
           pile. This is always possible (could make impossible if stock and
           waste are both empty? but applying it in that case will result in an
           unchanged game state which will be rejected as "visited")
-        - MoveTableauToTableau(source_col, source_row, target_col)
-        - MoveTableauToFoundation(source_col)
-        - MoveWasteToTableau(target_col)
-        - MoveWasteToFoundation()
         - MoveFoundationToTableau(source_col, target_col)
+
+        return list in this order ^^^ so that solve() tries them in an order
+        that makes sense! Best to put things on the foundation when possible.
         """
         moves = []
-
-        print(self)
 
         # move tableau to foundation?
         for col in range(7):
@@ -159,6 +168,18 @@ class GameState(object):
             card = self.waste[-1]
             if card.rank == self.foundation[card.suit]:
                 moves.append(MoveWasteToFoundation())
+
+        # move waste to tableau?
+        if len(self.waste) > 0:
+            card = self.waste[-1]
+            for target_col in range(7):
+                # is the target column empty?
+                if len(self.tableau[target_col][1]) == 0:
+                    # only a king can go here
+                    if card.rank == 12:
+                        moves.append(MoveWasteToTableau(target_col))
+                elif card.fits_under(self.tableau[target_col][1][-1]):
+                    moves.append(MoveWasteToTableau(target_col))
 
         # move tableau to tableau?
         for col in range(7):
@@ -179,17 +200,8 @@ class GameState(object):
                         if top_card.fits_under(other_card):
                             moves.append(MoveTableauToTableau(col, row, target_col))
 
-        # move waste to tableau?
-        if len(self.waste) > 0:
-            card = self.waste[-1]
-            for target_col in range(7):
-                # is the target column empty?
-                if len(self.tableau[target_col][1]) == 0:
-                    # only a king can go here
-                    if card.rank == 12:
-                        moves.append(MoveWasteToTableau(target_col))
-                elif card.fits_under(self.tableau[target_col][1][-1]):
-                    moves.append(MoveWasteToTableau(target_col))
+        # turn stock
+        moves.append(TurnStock())
 
         # move foundation to tableau?
         for suit in range(4):
@@ -204,9 +216,6 @@ class GameState(object):
                         moves.append(MoveFoundationToTableau(suit, target_col))
                 elif card.fits_under(self.tableau[target_col][1][-1]):
                     moves.append(MoveFoundationToTableau(suit, target_col))
-
-        # turn stock
-        moves.append(TurnStock())
 
         return moves
 
@@ -334,10 +343,10 @@ class GameState(object):
         new_state = deepcopy(self)
 
         # remove it from the foundation
-        foundation[source_suit] -= 1
+        new_state.foundation[source_suit] -= 1
 
         # put it in the tableau
-        tableau[target_col][1].append(card)
+        new_state.tableau[target_col][1].append(card)
 
         return new_state
 
@@ -385,9 +394,14 @@ class GameState(object):
         return (self.foundation == [13, 13, 13, 13])
 
     def __hash__(self):
-        # CHEAP
-        tableau_tuple = tuple(
-            tuple(tuple(stack) for stack in col) for col in self.tableau)
+        # this may be a terrible idea, but:
+        # practically, it doesn't matter what order columns are in. Sorting the
+        # tableau columns before hashing means solve() won't try to construct
+        # every possible arrangement of the same stacks of cards just in
+        # different columns. BUT this kind of abuses what hashing is :-/
+        tableau_cols = [
+            tuple(tuple(stack) for stack in col) for col in self.tableau]
+        tableau_tuple = tuple(sorted(tableau_cols))
 
         return hash((
             tableau_tuple, tuple(self.stock), tuple(self.waste),
@@ -534,16 +548,25 @@ def deal_random_game():
     return GameState(deck)
 
 
-def solve(game_state, visited=None):
+def solve(game_state, visited=None, depth=0):
     """
     Return a sequence of moves that solves the game, or None if there is no
     solution.
     """
     global CACHE, CACHE_HITS
+    global MAXDEPTH
     
-    if game_state in CACHE:
+    if hash(game_state) in CACHE:
         CACHE_HITS += 1
-        return CACHE[game_state]
+        return CACHE[hash(game_state)]
+
+    if depth > MAXDEPTH:
+        MAXDEPTH = depth
+
+    # DEBUG
+    if visited is not None:
+        if len(visited) % 100 == 0:
+            print("at depth {}, visited {} states, maxdepth = {}".format(depth, len(visited), MAXDEPTH))
 
     # if this is a new game, start tracking what game states we've tried
     if visited == None:
@@ -551,25 +574,34 @@ def solve(game_state, visited=None):
 
     # If we've already been to this game state up a number of frames of
     # recursion, don't bother (but also don't cache this as a loss)
-    if game_state in visited:
+    if hash(game_state) in visited:
         return None
 
     # Otherwise: we haven't tried this game state until just now. Mark it as
     # visited before trying to solve from here.
-    visited.add(game_state)
+    visited.add(hash(game_state))
     
     # base case: game is won. No moves necessary!
     if game_state.is_won():
-        CACHE[game_state] = []
+        # CACHE[game_state] = []
         return []
 
     for move in game_state.valid_moves():
-        rest_of_moves = solve(game_state.apply_move(move), visited)
+        rest_of_moves = solve(game_state.apply_move(move), visited, depth + 1)
         if rest_of_moves is not None:
             solution = [move] + rest_of_moves
-            CACHE[game_state] = solution
+            # CACHE[game_state] = solution
             return solution
 
     # if we get here, we did not find a way to win this game!
-    CACHE[game_state] = None
+    # CACHE[game_state] = None
     return None
+
+
+if __name__ == "__main__":
+    sys.setrecursionlimit(10000)
+    deck = deepcopy(DECK)
+    shuffle(deck)
+    game = GameState(deck)
+    print(game)
+    print(solve(game))
